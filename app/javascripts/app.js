@@ -16,22 +16,53 @@ function refreshBalance() {
     console.log(e);
     setStatus("Error getting balance; see log.");
   });
+
+  // Try to Display the next account for Alice
+  account = accounts[1];
+  split.getBalance.call(account, {from: account}).then(function(value) {
+    var balance_element = document.getElementById("balanceAlice");
+    balance_element.innerHTML = value.valueOf();
+  }).catch(function(e) {
+    console.log(e);
+    setStatus("Error getting balanceAlice; see log.");
+  });
+  
+  // Try to Display the next account for Bob 
+  account = accounts[2];
+  split.getBalance.call(account, {from: account}).then(function(value) {
+    var balance_element = document.getElementById("balanceBob");
+    balance_element.innerHTML = value.valueOf();
+  }).catch(function(e) {
+    console.log(e);
+    setStatus("Error getting balanceBob; see log.");
+  });
+  
+  // Try to Display the next account for Carol 
+  account = accounts[3];
+  split.getBalance.call(account, {from: account}).then(function(value) {
+    var balance_element = document.getElementById("balanceCarol");
+    balance_element.innerHTML = value.valueOf();
+  }).catch(function(e) {
+    console.log(e);
+    setStatus("Error getting balanceCarol; see log.");
+  });
 };
 
 function sendCoin() {
   var split = Splitter.deployed();
 
   var amount = parseInt(document.getElementById("amount").value);
-  var receiver = document.getElementById("receiver").value;
+  var rxBob = document.getElementById("rxBob").value;
+  var rxCarol = document.getElementById("rxCarol").value;
 
   setStatus("Initiating transaction... (please wait)");
 
-  split.sendCoin(receiver, amount, {from: account}).then(function() {
+  split.sendCoin(rxBob, rxCarol, amount, {from: account}).then(function() {
     setStatus("Transaction complete!");
     refreshBalance();
   }).catch(function(e) {
     console.log(e);
-    setStatus("Error sending coin; see log.");
+    setStatus("Error splitting coin; see log.");
   });
 };
 

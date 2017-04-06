@@ -18,19 +18,26 @@ contract Splitter {
 		balances[tx.origin] = 15000;
 	}
 
-	function sendCoin(address receiver, uint amount) returns(bool sufficient) {
-		if (balances[msg.sender] < amount) return false;
-		balances[msg.sender] -= amount;
-		balances[receiver] += amount;
-		Transfer(msg.sender, receiver, amount);
-		return true;
+	function sendCoin(address rxBob, address rxCarol, uint amount) returns(bool sufficient) {
+        uint remainder = 0;
+        uint sharedAmt = 0;
+
+        if (balances[msg.sender] < amount) return false;
+        balances[msg.sender] -= amount;
+
+        sharedAmt = amount/2;
+        // TODO, need to deal with remainder?
+        
+        Transfer(msg.sender, rxBob, sharedAmt);
+        Transfer(msg.sender, rxCarol, sharedAmt);
+        return true;
 	}
 
 	function getBalanceInEth(address addr) returns(uint){
 		return ConvertLib.convert(getBalance(addr),2);
 	}
 
-	function getBalance(address addr) returns(uint) {
+    function getBalance(address addr) returns(uint) {
 		return balances[addr];
 	}
 }
