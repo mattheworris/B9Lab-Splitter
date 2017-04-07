@@ -46,6 +46,10 @@ contract('Splitter', function(accounts) {
         return split.getBalance.call(account_tre);
     }).then(function(balance) {
         account_tre_starting_balance = balance.toNumber();
+        console.log('account_one', account_one);
+        console.log('account_two', account_two);
+        console.log('account_tre', account_tre);
+        console.log('amount', amount);
         return split.sendCoin(account_two, account_tre, amount, {from: account_one});
     }).then(function() {
         return split.getBalance.call(account_one);
@@ -58,11 +62,11 @@ contract('Splitter', function(accounts) {
     }).then(function(balance) {
         account_tre_ending_balance = balance.toNumber();
 
-    var sharedAmt = amount/2;
+    var sharedAmt = Math.floor(amount/2);
     var CarolAmt = amount/2;
     assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
     assert.equal(account_two_ending_balance, account_two_starting_balance + sharedAmt, "Amount wasn't correctly sent to Bob");
-    assert.equal(account_tre_ending_balance, account_tre_starting_balance + CarolAmt, "Amount wasn't correctly sent to Carol");
+    assert.equal(account_tre_ending_balance, account_tre_starting_balance + sharedAmt, "Amount wasn't correctly sent to Carol");
     });
   });
 });
