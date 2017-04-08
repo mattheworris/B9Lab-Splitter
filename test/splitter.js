@@ -1,32 +1,12 @@
 contract('Splitter', function(accounts) {
-  it("should put 15000 Ether in the first account", function() {
-    var split = Splitter.deployed();
-
-    return split.getBalance.call(accounts[0]).then(function(balance) {
-      assert.equal(balance.valueOf(), 15000, "15000 wasn't in the first account");
-    });
-  });
-  it("should call a function that depends on a linked library", function() {
-    var split = Splitter.deployed();
-    var splitCoinBalance;
-    var splitCoinEthBalance;
-
-    return split.getBalance.call(accounts[0]).then(function(outCoinBalance) {
-      splitCoinBalance = outCoinBalance.toNumber();
-      return split.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      splitCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(splitCoinEthBalance, 2 * splitCoinBalance, "Library function returned unexpeced function, linkage may be broken");
-    });
-  });
+    
   it("should split coin correctly", function() {
     var split = Splitter.deployed();
 
     // Get initial balances of first, second, and third account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
-    var account_tre = accounts[2];
+    var account_one = accounts[1];
+    var account_two = accounts[2];
+    var account_tre = accounts[3];
 
     var account_one_starting_balance;
     var account_two_starting_balance;
@@ -38,8 +18,10 @@ contract('Splitter', function(accounts) {
 
     var amount = 15;
 
+    console.log('accounts', accounts);
     return split.getBalance.call(account_one).then(function(balance) {
         account_one_starting_balance = balance.toNumber();
+        console.log('one start', account_one_starting_balance);
         return split.getBalance.call(account_two);
     }).then(function(balance) {
         account_two_starting_balance = balance.toNumber();
@@ -50,7 +32,7 @@ contract('Splitter', function(accounts) {
         console.log('account_two', account_two);
         console.log('account_tre', account_tre);
         console.log('amount', amount);
-        return split.sendCoin(account_two, account_tre, amount, {from: account_one});
+        return split.sendCoin(amount);
     }).then(function() {
         return split.getBalance.call(account_one);
     }).then(function(balance) {

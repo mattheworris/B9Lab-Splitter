@@ -1,7 +1,5 @@
 pragma solidity ^0.4.2;
 
-import "ConvertLib.sol";
-
 // Splitter: Week3 Small Project
 // 1. Show the Balance of the Splitter Contract on the web page
 // 2. Accounts for Alice, Bob and Carol.
@@ -10,34 +8,38 @@ import "ConvertLib.sol";
 
 
 contract Splitter {
-	mapping (address => uint) balances;
+    address owner;
+    // These are the accounts from Metamask
+    address Alice = 0x47f54beda3e1bc5b9f1e8cea9fbf5628d6331f96;
+    address Bob = 0xbe7930fb23a69c62368b8b09b7d6178a0b86f2ac;
+    address Carol = 0xf39821554e0d3c9c5e269d5132f4d95230460bae;
 
-	event Transfer(address indexed _from, address indexed _to, uint256 _value);
-
-	function Splitter() {
-		balances[tx.origin] = 15000;
+	function Splitter() payable {
+        owner = msg.sender;
 	}
 
-	function sendCoin(address rxBob, address rxCarol, uint amount) returns(bool sufficient) {
+	function sendCoin(uint amount) payable returns(bool sufficient) {
         uint remainder = 0;
         uint sharedAmt = 0;
-
-        if (balances[msg.sender] < amount) return false;
-        balances[msg.sender] -= amount;
 
         sharedAmt = amount/2;
         // TODO, need to deal with remainder?
         
-        Transfer(msg.sender, rxBob, sharedAmt);
-        Transfer(msg.sender, rxCarol, sharedAmt);
-        return true;
+        if(Bob.send(sharedAmt)){
+            if(Carol.send(sharedAmt)){
+                return true;
+            }
+        }
+        return false;
 	}
 
-	function getBalanceInEth(address addr) returns(uint){
-		return ConvertLib.convert(getBalance(addr),2);
-	}
+    function getBalance() returns (uint) {
+        return address(this).balance;
+    }
 
-    function getBalance(address addr) returns(uint) {
-		return balances[addr];
-	}
+    function killMe() {
+        if (msg.sender == owner) {
+            suicide(owner);
+        }
+    }
 }
