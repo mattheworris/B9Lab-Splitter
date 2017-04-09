@@ -1,96 +1,158 @@
 var accounts;
-var account;
+var acctSplit;
+var acctAlice;
+var acctBob;
+var acctCarol;
+var acctOwner;
 
 function setStatus(message) {
-  var status = document.getElementById("status");
-  status.innerHTML = message;
+    var status = document.getElementById("status");
+    status.innerHTML = message;
 };
 
 function refreshBalance() {
-  var split = Splitter.deployed();
-  var acctAlice;
+    var split = Splitter.deployed();
 
-  split.getBalance.call(account, {from: account}).then(function(value) {
-    var balance_element = document.getElementById("balance");
-    balance_element.innerHTML = value.valueOf();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error getting balance; see log.");
-  });
+    web3.eth.getBalance(acctSplit, function(err, balSplitter) {
+        if (err != null) {
+            alert("There was an error fetching your accounts.");
+            return;
+        }
+        var balSplitter_element = document.getElementById("balSplitter");
+        balSplitter_element.innerHTML = balSplitter;
+    });
+  
+    // Get the other account addresses from the contract
+    split.Alice()
+        .then(function(Alice) {
+            acctAlice = Alice;
+            console.log('acctAlice', acctAlice);
+            web3.eth.getBalance(acctAlice, function(err, balAlice) {
+                if (err != null) {
+                    alert("There was an error fetching your accounts.");
+                    return;
+                }
+                var balAlice_element = document.getElementById("balAlice");
+                balAlice_element.innerHTML = balAlice;
+            });
+        });
 
-  //web3.eth.getAccounts(function(err, accs) {
-   // if (err != null) {
-    //  alert("There was an error fetching your accounts.");
-     // return;
-    //}
-   //acctAlice = accs[1];
-  //console.log('accs', accs, 'acctAlice', acctAlice);
-  //});
-  // Try to Display the next account for Alice
-  //split.getBalance.call(acctAlice, {from: account}).then(function(value) {
-    //var balance_element = document.getElementById("balanceAlice");
-    //balance_element.innerHTML = value.valueOf();
-  //}).catch(function(e) {
-    //console.log(e);
-    //setStatus("Error getting balanceAlice; see log.");
-  //});
-  
-  // Try to Display the next account for Bob 
-  //account = accounts[2];
-  //split.getBalance.call(account, {from: account}).then(function(value) {
-    //var balance_element = document.getElementById("balanceBob");
-    //balance_element.innerHTML = value.valueOf();
-  //}).catch(function(e) {
-    //console.log(e);
-    //setStatus("Error getting balanceBob; see log.");
-  //});
-  
-  // Try to Display the next account for Carol 
-  //account = accounts[3];
-  //split.getBalance.call(account, {from: account}).then(function(value) {
-    //var balance_element = document.getElementById("balanceCarol");
-    //balance_element.innerHTML = value.valueOf();
-  //}).catch(function(e) {
-    //console.log(e);
-    //setStatus("Error getting balanceCarol; see log.");
-  //});
+    split.Bob()
+        .then(function(Bob) {
+            acctBob = Bob;
+            console.log('acctBob', acctBob);
+            web3.eth.getBalance(acctBob, function(err, balBob) {
+                if (err != null) {
+                    alert("There was an error fetching your accounts.");
+                    return;
+                }
+                var balBob_element = document.getElementById("balBob");
+                balBob_element.innerHTML = balBob;
+            });
+        });
+
+    split.Carol()
+        .then(function(Carol) {
+            acctCarol = Carol;
+            console.log('acctCarol', acctCarol);
+            web3.eth.getBalance(acctCarol, function(err, balCarol) {
+                if (err != null) {
+                    alert("There was an error fetching your accounts.");
+                    return;
+                }
+                var balCarol_element = document.getElementById("balCarol");
+                balCarol_element.innerHTML = balCarol;
+            });
+        });
+
+//        split.getBalance.call(account, {from: account}).then(function(value) {
+//    var balance_element = document.getElementById("balance");
+//    balance_element.innerHTML = value.valueOf();
+//  }).catch(function(e) {
+//    console.log(e);
+//    setStatus("Error getting balance; see log.");
+//  });
+
 };
 
 function sendCoin() {
-  var split = Splitter.deployed();
+    var split = Splitter.deployed();
 
-  var amount = parseInt(document.getElementById("amount").value);
-  var rxBob = document.getElementById("rxBob").value;
-  var rxCarol = document.getElementById("rxCarol").value;
+    var amount = parseInt(document.getElementById("amount").value);
 
-  setStatus("Initiating transaction... (please wait)");
+    setStatus("Initiating transaction... (please wait)");
 
-  console.log('rxBob', rxBob, 'rxCarol', rxCarol, 'account', account);
-  split.sendCoin(rxBob, rxCarol, amount, {from: account}).then(function() {
-    setStatus("Transaction complete!");
-    refreshBalance();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error splitting coin; see log.");
-  });
+    web3.eth.sendTransaction({from:acctOwner, to:acctSplit, value:amount}, function(err, txHash) {
+        if (err != null) {
+            setStatus("There was an error sending ether to Split contract.");
+            return;
+        }
+        else {
+            setStatus("Waiting for transaction to be mined...");
+            return web3.eth.getTransactionReceiptMined(txHash)
+            .then( function(receipt) {
+                setStatus("Transaction complete.");
+                refreshBalance();
+            });
+        }
+    });
 };
 
 window.onload = function() {
-  web3.eth.getAccounts(function(err, accs) {
-    if (err != null) {
-      alert("There was an error fetching your accounts.");
-      return;
-    }
+    var split = Splitter.deployed();
+    acctSplit = split.address;
 
-    if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-      return;
-    }
+    // Get the user account from the web3 provider, it will only be one account
+    web3.eth.getAccounts(function(err, accs) {
+        if (err != null) {
+            alert("There was an error fetching your accounts.");
+            return;
+        }
 
-    accounts = accs;
-    account = accounts[0];
-    console.log('accounts', accounts);
+        if (accs.length == 0) {
+            alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+            return;
+        }
 
-    refreshBalance();
-  });
+        accounts = accs;
+        // This is not necessarily the contract address!!
+        acctOwner = accounts[0];
+        console.log('accounts', accounts);
+
+        // Get the balances for the other accounts registered in the contract
+        refreshBalance();
+    });
+
+    web3.eth.getTransactionReceiptMined = function (txnHash, interval) {
+        var transactionReceiptAsync;
+        interval = interval ? interval : 500;
+        transactionReceiptAsync = function(txnHash, resovle, reject) {
+            try {
+                var receipt = web3.eth.getTransactionReceipt(txnHash);
+                if (receipt == null) {
+                    setTimeout(function () {
+                                transactionReceiptAsync(txnHash, resolve, reject); },  
+                                interval);
+                }
+                else {
+                    resolve(receipt);
+                }
+            } catch(e) {
+                reject(e);
+            }
+        };
+
+        if (Array.isArray(txnHash)) {
+            var promises = [];
+            txnHash.forEach(function (oneTxHash) {
+                promises.push(web3.eth.getTransactionReceiptMined(oneTxHash, interval));
+            });
+            return Promise.all(promises);
+        }
+        else {
+            return new Promise(function (resolve, reject) {
+                transactionReceiptAsync(txnHash, resolve, reject);
+            });
+        }
+    };
 }

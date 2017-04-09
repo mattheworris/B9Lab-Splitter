@@ -10,36 +10,32 @@ pragma solidity ^0.4.2;
 contract Splitter {
     address owner;
     // These are the accounts from Metamask
-    address Alice = 0x47f54beda3e1bc5b9f1e8cea9fbf5628d6331f96;
-    address Bob = 0xbe7930fb23a69c62368b8b09b7d6178a0b86f2ac;
-    address Carol = 0xf39821554e0d3c9c5e269d5132f4d95230460bae;
+    address public Alice = 0x47f54beda3e1bc5b9f1e8cea9fbf5628d6331f96;
+    address public Bob = 0xbe7930fb23a69c62368b8b09b7d6178a0b86f2ac;
+    address public Carol = 0xf39821554e0d3c9c5e269d5132f4d95230460bae;
 
-	function Splitter() payable {
+	function Splitter() {
         owner = msg.sender;
 	}
 
-	function sendCoin(uint amount) payable returns(bool sufficient) {
-        uint remainder = 0;
+	function () payable {
         uint sharedAmt = 0;
 
-        sharedAmt = amount/2;
+        sharedAmt = (msg.value)/2;
         // TODO, need to deal with remainder?
         
-        if(Bob.send(sharedAmt)){
-            if(Carol.send(sharedAmt)){
-                return true;
-            }
+        if (Bob.send(sharedAmt + ((msg.value)%2) )) {
+            if (!Carol.send(sharedAmt)) {
+                throw;
+            } 
+        } else {
+            throw;
         }
-        return false;
 	}
-
-    function getBalance() returns (uint) {
-        return address(this).balance;
-    }
 
     function killMe() {
         if (msg.sender == owner) {
-            suicide(owner);
+            selfdestruct(owner);
         }
     }
 }
