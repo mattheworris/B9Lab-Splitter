@@ -19,7 +19,7 @@ function refreshBalance() {
             return;
         }
         var balSplitter_element = document.getElementById("balSplitter");
-        balSplitter_element.innerHTML = balSplitter;
+        balSplitter_element.innerHTML = web3.fromWei(balSplitter, 'ether');
     });
   
     // Get the other account addresses from the contract
@@ -33,7 +33,7 @@ function refreshBalance() {
                     return;
                 }
                 var balAlice_element = document.getElementById("balAlice");
-                balAlice_element.innerHTML = balAlice;
+                balAlice_element.innerHTML = web3.fromWei(balAlice, 'ether');
             });
         });
 
@@ -47,7 +47,7 @@ function refreshBalance() {
                     return;
                 }
                 var balBob_element = document.getElementById("balBob");
-                balBob_element.innerHTML = balBob;
+                balBob_element.innerHTML = web3.fromWei(balBob, 'ether');
             });
         });
 
@@ -61,7 +61,7 @@ function refreshBalance() {
                     return;
                 }
                 var balCarol_element = document.getElementById("balCarol");
-                balCarol_element.innerHTML = balCarol;
+                balCarol_element.innerHTML = web3.fromWei(balCarol, 'ether');
             });
         });
 
@@ -79,6 +79,7 @@ function sendCoin() {
     var split = Splitter.deployed();
 
     var amount = parseInt(document.getElementById("amount").value);
+    amount = web3.toWei(amount, 'ether');
 
     setStatus("Initiating transaction... (please wait)");
 
