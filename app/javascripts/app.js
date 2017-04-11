@@ -13,29 +13,36 @@ function setStatus(message) {
 function refreshBalance() {
     var split = Splitter.deployed();
 
-    web3.eth.getBalance(acctSplit, function(err, balSplitter) {
-        if (err != null) {
-            alert("There was an error fetching your accounts.");
-            return;
-        }
-        var balSplitter_element = document.getElementById("balSplitter");
-        balSplitter_element.innerHTML = web3.fromWei(balSplitter, 'ether');
-    });
-  
-    // Get the other account addresses from the contract
-    split.Alice()
-        .then(function(Alice) {
-            acctAlice = Alice;
-            console.log('acctAlice', acctAlice);
-            web3.eth.getBalance(acctAlice, function(err, balAlice) {
+    web3.eth.getBalance(acctSplit, 
+            function(err, balSplitter) {
                 if (err != null) {
                     alert("There was an error fetching your accounts.");
                     return;
                 }
-                var balAlice_element = document.getElementById("balAlice");
-                balAlice_element.innerHTML = web3.fromWei(balAlice, 'ether');
-            });
-        });
+                var balSplitter_element = document.getElementById("balSplitter");
+                balSplitter_element.innerHTML = web3.fromWei(balSplitter, 'ether');
+            }
+    );
+  
+    // Get the other account addresses from the contract
+    // Using ether-pudding to get a Promise
+    split.Alice()
+        .then(
+            function(Alice) {
+                acctAlice = Alice;
+                console.log('acctAlice', acctAlice);
+                web3.eth.getBalance(acctAlice, 
+                    function(err, balAlice) {
+                        if (err != null) {
+                            alert("There was an error fetching your accounts.");
+                            return;
+                        }
+                        var balAlice_element = document.getElementById("balAlice");
+                        balAlice_element.innerHTML = web3.fromWei(balAlice, 'ether');
+                    } 
+                );
+            }
+        );
 
     split.Bob()
         .then(function(Bob) {
@@ -81,22 +88,27 @@ function sendCoin() {
     var amount = parseInt(document.getElementById("amount").value);
     amount = web3.toWei(amount, 'ether');
 
-    setStatus("Initiating transaction... (please wait)");
+    setStatus("Initiating transaction to send " + amount + " wei ... (please wait)");
 
-    web3.eth.sendTransaction({from:acctOwner, to:acctSplit, value:amount}, function(err, txHash) {
-        if (err != null) {
-            setStatus("There was an error sending ether to Split contract.");
-            return;
-        }
-        else {
-            setStatus("Waiting for transaction to be mined...");
-            return web3.eth.getTransactionReceiptMined(txHash)
-            .then( function(receipt) {
-                setStatus("Transaction complete.");
-                refreshBalance();
-            });
-        }
-    });
+    //web3.eth.sendTransaction({from:acctOwner, to:acctSplit, value:amount}, function(err, txHash) {
+    // Call sendSplit using the EtherPudding instance, which returns a Promise
+    split.sendSplit.call(amount, {from:acctOwner}) 
+        .then( 
+            function( err ) {
+                if (err != null) {
+                    setStatus("There was an error sending ether to Split contract.");
+                    return;
+                }
+                else {
+                    setStatus("Waiting for transaction to be mined...");
+                    return web3.eth.getTransactionReceiptMined(txHash)
+                }
+            }
+        )
+        .then( function(receipt) {
+            setStatus("Transaction complete.");
+            refreshBalance();
+        });
 };
 
 window.onload = function() {
@@ -124,6 +136,7 @@ window.onload = function() {
         refreshBalance();
     });
 
+    // Maybe this function should be defined elsewhere, why call it onload?
     web3.eth.getTransactionReceiptMined = function (txnHash, interval) {
         var transactionReceiptAsync;
         interval = interval ? interval : 500;
