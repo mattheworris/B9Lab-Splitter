@@ -85,30 +85,35 @@ function refreshBalance() {
 function sendCoin() {
     var split = Splitter.deployed();
 
-    var amount = parseInt(document.getElementById("amount").value);
+    // Attempt to get a floating point from the text field, not working...
+    var amount = parseFloat(document.getElementById("amount").value);
     amount = web3.toWei(amount, 'ether');
 
     setStatus("Initiating transaction to send " + amount + " wei ... (please wait)");
 
     //web3.eth.sendTransaction({from:acctOwner, to:acctSplit, value:amount}, function(err, txHash) {
-    // Call sendSplit using the EtherPudding instance, which returns a Promise
-    split.sendSplit.call(amount, {from:acctOwner}) 
-        .then( 
-            function( err ) {
+    // We need to interact with the web3 layer to allow the user to authorize the transaction.
+    split.contract.sendSplit.sendTransaction({from:acctOwner, to:acctSplit, value:amount}, 
+            function( err, txHash ) {
                 if (err != null) {
                     setStatus("There was an error sending ether to Split contract.");
                     return;
                 }
                 else {
                     setStatus("Waiting for transaction to be mined...");
+                    // sendTransaction should return the transaction hash
+                    // if this Promise works, then the UI will be updated.
+                    // Metamask doesn't like this, complains it's synchronous...
+                    // Is that because of the 'contract' instance above?
+                    // Taking out the 'contract' results in invalid address, so I am stuck.
                     return web3.eth.getTransactionReceiptMined(txHash)
+                        .then( function(receipt) {
+                            setStatus("Transaction complete.");
+                            refreshBalance();
+                        });
                 }
             }
-        )
-        .then( function(receipt) {
-            setStatus("Transaction complete.");
-            refreshBalance();
-        });
+        );
 };
 
 window.onload = function() {

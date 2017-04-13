@@ -21,22 +21,17 @@ contract Splitter {
         owner = msg.sender;
 	}
 
-    // From a transaction, we automatically get:
+    // From a transaction, we get:
     //      address msg.sender, address that called the function
     //      uint    msg.value, in wei
     //      address tx.origin, external account that initiated transaction
-    // From app.js
-    //      uint    sharedAmt, in ether
-	function sendSplit(uint sharedAmt) payable {
 
-        //sharedAmt = (msg.value)/2;
-        // TODO, need to deal with remainder?
-        // Web UI converts from ether to wei, so there is never a 
-        // remainder. If someone else calls the contract, then the wei
-        // remainder goes where?
-        
-        if (!Bob.send(sharedAmt/2)) throw;
-        if (!Carol.send(sharedAmt/2)) throw;
+	function sendSplit() payable returns (bool success) {
+        // Receive an ether transfer and split it between
+        // two accounts, Bob and Carol
+        if (!Bob.send(msg.value/2)) throw;
+        if (!Carol.send((msg.value/2) + (msg.value%2))) throw;
+        return true;
 	}
 
     function killMe() {
