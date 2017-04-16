@@ -83,24 +83,14 @@ function sendCoin() {
     setStatus("Initiating transaction to send " + amount + " wei ... (please wait)");
 
     // We need to interact with the web3 layer to allow the user to authorize the transaction.
-    // This should be web3 instance with callback
-    split.contract.sendSplit({from:acctOwner, to:acctSplit, value:amount}, 
-        function( err, txHash ) {
-            if (err != null) {
-                setStatus("There was an error sending ether to Split contract.");
-                return;
-            }
-            else {
-                setStatus("Waiting for transaction to be mined...");
-                web3.eth.getTransactionReceipt(txHash, 
-                    function(receipt) {
-                        setStatus("Transaction complete.");
-                        refreshBalance();
-                    }
-                );
-            }
-        }
-    );
+    // Access sendSplit using an EtherPudding instance which returns a promise after the 
+    // transaction has been mined.
+    split.sendSplit({from:acctOwner, value:amount}) 
+        .then( function(txHash) { 
+            setStatus("Transaction complete.");
+            refreshBalance();
+        })
+        .catch(err => setStatus("There was an error sending ether to the Split contract."));
 };
 
 window.onload = function() {
