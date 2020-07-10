@@ -1,0 +1,3 @@
+# Example of a `.gitattributes` file which classifies `.sol` files as Solidity
+*.sol linguist-language=Solidity
+
