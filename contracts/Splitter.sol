@@ -1,4 +1,5 @@
 pragma solidity ^0.4.2;
+//vim: syntax=Solidity
 
 // Splitter: Week3 Small Project
 // 1. Show the Balance of the Splitter Contract on the web page
